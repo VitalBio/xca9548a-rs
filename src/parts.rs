@@ -44,12 +44,12 @@ where
 {
     type Error = Error<E>;
 
-    fn write(&mut self, address: u8, bytes: &[u8]) -> Result<(), Self::Error> {
+    fn try_write(&mut self, address: u8, bytes: &[u8]) -> Result<(), Self::Error> {
         self.0.do_on_acquired(|mut dev| {
             if dev.selected_channel_mask != self.1 {
                 dev.select_channels(self.1)?;
             }
-            dev.i2c.write(address, bytes).map_err(Error::I2C)
+            dev.i2c.try_write(address, bytes).map_err(Error::I2C)
         })
     }
 }
@@ -61,12 +61,12 @@ where
 {
     type Error = Error<E>;
 
-    fn read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
+    fn try_read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
         self.0.do_on_acquired(|mut dev| {
             if dev.selected_channel_mask != self.1 {
                 dev.select_channels(self.1)?;
             }
-            dev.i2c.read(address, buffer).map_err(Error::I2C)
+            dev.i2c.try_read(address, buffer).map_err(Error::I2C)
         })
     }
 }
@@ -78,7 +78,7 @@ where
 {
     type Error = Error<E>;
 
-    fn write_read(
+    fn try_write_read(
         &mut self,
         address: u8,
         bytes: &[u8],
@@ -89,7 +89,7 @@ where
                 dev.select_channels(self.1)?;
             }
             dev.i2c
-                .write_read(address, bytes, buffer)
+                .try_write_read(address, bytes, buffer)
                 .map_err(Error::I2C)
         })
     }

@@ -227,7 +227,7 @@ where
     type Error = Error<E>;
     fn select_channels(&mut self, channels: u8) -> Result<(), Self::Error> {
         self.i2c
-            .write(self.address, &[channels])
+            .try_write(self.address, &[channels])
             .map_err(Error::I2C)?;
         self.selected_channel_mask = channels;
         Ok(())
@@ -286,8 +286,8 @@ macro_rules! i2c_traits {
         {
             type Error = Error<E>;
 
-            fn write(&mut self, address: u8, bytes: &[u8]) -> Result<(), Self::Error> {
-                self.do_on_acquired(|mut dev| dev.i2c.write(address, bytes).map_err(Error::I2C))
+            fn try_write(&mut self, address: u8, bytes: &[u8]) -> Result<(), Self::Error> {
+                self.do_on_acquired(|mut dev| dev.i2c.try_write(address, bytes).map_err(Error::I2C))
             }
         }
 
@@ -297,8 +297,8 @@ macro_rules! i2c_traits {
         {
             type Error = Error<E>;
 
-            fn read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
-                self.do_on_acquired(|mut dev| dev.i2c.read(address, buffer).map_err(Error::I2C))
+            fn try_read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
+                self.do_on_acquired(|mut dev| dev.i2c.try_read(address, buffer).map_err(Error::I2C))
             }
         }
 
@@ -308,7 +308,7 @@ macro_rules! i2c_traits {
         {
             type Error = Error<E>;
 
-            fn write_read(
+            fn try_write_read(
                 &mut self,
                 address: u8,
                 bytes: &[u8],
@@ -316,7 +316,7 @@ macro_rules! i2c_traits {
             ) -> Result<(), Self::Error> {
                 self.do_on_acquired(|mut dev| {
                     dev.i2c
-                        .write_read(address, bytes, buffer)
+                        .try_write_read(address, bytes, buffer)
                         .map_err(Error::I2C)
                 })
             }
@@ -372,7 +372,7 @@ macro_rules! impl_device {
                 self.do_on_acquired(|mut dev| {
                     let address = dev.address;
                     dev.i2c
-                        .read(address, &mut data)
+                        .try_read(address, &mut data)
                         .map_err(Error::I2C)
                         .and(Ok(data[0]))
                 })
@@ -412,7 +412,7 @@ macro_rules! impl_device {
                 self.do_on_acquired(|mut dev| {
                     let address = dev.address;
                     dev.i2c
-                        .read(address, &mut data)
+                        .try_read(address, &mut data)
                         .map_err(Error::I2C)
                         .and(Ok(data[0] & $mask))
                 })
@@ -429,7 +429,7 @@ macro_rules! impl_device {
                 self.do_on_acquired(|mut dev| {
                     let address = dev.address;
                     dev.i2c
-                        .read(address, &mut data)
+                        .try_read(address, &mut data)
                         .map_err(Error::I2C)
                         .and(Ok((data[0] >> 4) & $mask))
                 })
